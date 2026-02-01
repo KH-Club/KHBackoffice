@@ -141,8 +141,8 @@ export default function LoginPage() {
             <Button
               type="submit"
               className={`h-11 w-full font-medium transition-all ${loading || !isConfigured
-                  ? "cursor-not-allowed bg-gray-400"
-                  : "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40"
+                ? "cursor-not-allowed bg-gray-400"
+                : "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40"
                 }`}
               disabled={loading || !isConfigured}
             >
