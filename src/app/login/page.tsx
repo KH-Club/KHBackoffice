@@ -159,11 +159,10 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center text-xs text-gray-500">
             <p>KaiHor Camp Admin System</p>
-            {process.env.NODE_ENV === "development" && (
-              <p className="mt-2 text-gray-400">
-                Config: {isConfigured ? "✓" : "✗"}
-              </p>
-            )}
+            <p className="mt-2 text-gray-400">
+              URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? "✓" : "✗"} | 
+              Key: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "✓" : "✗"}
+            </p>
           </div>
         </CardContent>
       </Card>
