@@ -65,7 +65,7 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4">
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
         <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl" />
         <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600/10 blur-3xl" />
@@ -73,7 +73,7 @@ export default function LoginPage() {
 
       {/* Grid pattern overlay */}
       <div
-        className="absolute inset-0 opacity-20"
+        className="pointer-events-none absolute inset-0 opacity-20"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(148 163 184 / 0.1)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e")`,
         }}
@@ -140,11 +140,10 @@ export default function LoginPage() {
             </div>
             <Button
               type="submit"
-              className={`h-11 w-full font-medium transition-all ${
-                loading || !isConfigured
+              className={`h-11 w-full font-medium transition-all ${loading || !isConfigured
                   ? "cursor-not-allowed bg-gray-400"
                   : "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40"
-              }`}
+                }`}
               disabled={loading || !isConfigured}
             >
               {loading ? (
