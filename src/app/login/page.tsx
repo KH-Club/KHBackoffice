@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,7 +23,7 @@ export default function LoginPage() {
   const router = useRouter()
 
   const supabase = useMemo(() => {
-    if (typeof window !== "undefined" && isSupabaseConfigured()) {
+    if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       return createClient()
     }
     return null
@@ -60,7 +60,10 @@ export default function LoginPage() {
     }
   }
 
-  const isConfigured = typeof window !== "undefined" && isSupabaseConfigured()
+  const isConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4">
@@ -160,7 +163,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center text-xs text-gray-500">
             <p>KaiHor Camp Admin System</p>
             <p className="mt-2 text-gray-400">
-              URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? "✓" : "✗"} | 
+              URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? "✓" : "✗"} |
               Key: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "✓" : "✗"}
             </p>
           </div>
