@@ -140,7 +140,11 @@ export default function LoginPage() {
             </div>
             <Button
               type="submit"
-              className="h-11 w-full bg-gradient-to-r from-blue-600 to-indigo-600 font-medium shadow-lg shadow-blue-500/30 transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40"
+              className={`h-11 w-full font-medium transition-all ${
+                loading || !isConfigured
+                  ? "cursor-not-allowed bg-gray-400"
+                  : "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/40"
+              }`}
               disabled={loading || !isConfigured}
             >
               {loading ? (
@@ -156,6 +160,11 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center text-xs text-gray-500">
             <p>KaiHor Camp Admin System</p>
+            {process.env.NODE_ENV === "development" && (
+              <p className="mt-2 text-gray-400">
+                Config: {isConfigured ? "✓" : "✗"}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
