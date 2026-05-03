@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import {
   Tent,
   Calendar,
-  Users,
+  MessageSquareQuote,
   TrendingUp,
   ArrowRight,
   Plus,
@@ -30,6 +30,10 @@ export default async function DashboardPage() {
 
   const { count: eventsCount } = await supabase
     .from("events")
+    .select("*", { count: "exact", head: true })
+
+  const { count: voicesCount } = await supabase
+    .from("alumni_student_voices")
     .select("*", { count: "exact", head: true })
 
   const stats = [
@@ -61,10 +65,10 @@ export default async function DashboardPage() {
       iconBg: "bg-purple-500",
     },
     {
-      title: "Community",
-      value: "500+",
-      description: "Active members",
-      icon: Users,
+      title: "Voices",
+      value: voicesCount ?? 0,
+      description: "Alumni and student stories",
+      icon: MessageSquareQuote,
       gradient: "from-amber-500 to-amber-600",
       bgGradient: "from-amber-50 to-amber-100",
       iconBg: "bg-amber-500",
@@ -149,6 +153,25 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <ArrowRight className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-blue-600" />
+            </Link>
+            <Link
+              href="/alumni-student-voices"
+              className="group flex items-center justify-between rounded-xl border border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50 p-4 transition-all hover:border-amber-200 hover:shadow-md"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-600 shadow-lg shadow-amber-500/30">
+                  <MessageSquareQuote className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    Manage Voices
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Publish homepage alumni and student stories
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-amber-600" />
             </Link>
             <Link
               href="/events"

@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase/client"
 import imageCompression from "browser-image-compression"
 
-const BUCKET_NAME = "camps"
+const CAMPS_BUCKET_NAME = "camps"
+const ALUMNI_STUDENT_VOICES_BUCKET_NAME = "alumni-student-voices"
 const MAX_FILE_SIZE_MB = 5 // Supabase bucket limit
+
+type UploadResult = { url: string; path: string } | { error: string }
 
 /**
  * Convert camp ID to folder-safe name
@@ -16,8 +19,16 @@ export function getCampFolderName(campId: number): string {
  * Get public URL for a camp image
  */
 export function getCampImageUrl(path: string): string {
+  return getPublicStorageUrl(CAMPS_BUCKET_NAME, path)
+}
+
+export function getAlumniStudentVoiceImageUrl(path: string): string {
+  return getPublicStorageUrl(ALUMNI_STUDENT_VOICES_BUCKET_NAME, path)
+}
+
+function getPublicStorageUrl(bucketName: string, path: string): string {
   const supabase = createClient()
-  const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path)
+  const { data } = supabase.storage.from(bucketName).getPublicUrl(path)
   return data.publicUrl
 }
 
@@ -67,20 +78,15 @@ async function compressImage(
   }
 }
 
-/**
- * Upload a camp image to Supabase Storage
- * Automatically compresses images larger than 5MB
- */
-export async function uploadCampImage(
+async function uploadImageToBucket(
   file: File,
-  campId: number,
-  fileName?: string,
+  bucketName: string,
+  path: string,
   onProgress?: (stage: string, progress: number) => void
-): Promise<{ url: string; path: string } | { error: string }> {
+): Promise<UploadResult> {
   const supabase = createClient()
 
   try {
-    // Step 1: Compress if needed
     const fileSizeMB = file.size / (1024 * 1024)
     let processedFile = file
 
@@ -92,22 +98,10 @@ export async function uploadCampImage(
       onProgress?.("compressing", 100)
     }
 
-    // Step 2: Upload
-    onProgress?.("uploading", 0)
-
-    // Convert camp ID to folder-safe name (e.g., 53.5 -> 53-5)
-    const folderName = getCampFolderName(campId)
-
-    // Generate file name if not provided
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
-    const name = fileName || `${Date.now()}.${ext}`
-    const path = `main/${folderName}/${name}`
-
     onProgress?.("uploading", 30)
 
-    // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
+      .from(bucketName)
       .upload(path, processedFile, {
         cacheControl: "3600",
         upsert: true,
@@ -120,10 +114,7 @@ export async function uploadCampImage(
 
     onProgress?.("uploading", 100)
 
-    // Get public URL
-    const url = getCampImageUrl(path)
-
-    return { url, path }
+    return { url: getPublicStorageUrl(bucketName, path), path }
   } catch (error) {
     console.error("Upload failed:", error)
     return { error: error instanceof Error ? error.message : "Upload failed" }
@@ -131,24 +122,83 @@ export async function uploadCampImage(
 }
 
 /**
+ * Upload a camp image to Supabase Storage
+ * Automatically compresses images larger than 5MB
+ */
+export async function uploadCampImage(
+  file: File,
+  campId: number,
+  fileName?: string,
+  onProgress?: (stage: string, progress: number) => void
+): Promise<UploadResult> {
+  onProgress?.("uploading", 0)
+
+  // Convert camp ID to folder-safe name (e.g., 53.5 -> 53-5)
+  const folderName = getCampFolderName(campId)
+
+  // Generate file name if not provided
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+  const name = fileName || `${Date.now()}.${ext}`
+  const path = `main/${folderName}/${name}`
+
+  return uploadImageToBucket(file, CAMPS_BUCKET_NAME, path, onProgress)
+}
+
+export async function uploadAlumniStudentVoiceImage(
+  file: File,
+  fileName?: string,
+  onProgress?: (stage: string, progress: number) => void
+): Promise<UploadResult> {
+  onProgress?.("uploading", 0)
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+  const uniqueSuffix = Math.random().toString(36).slice(2)
+  const safeFileName = fileName || `${Date.now()}-${uniqueSuffix}.${ext}`
+  const path = `voices/${safeFileName}`
+
+  return uploadImageToBucket(
+    file,
+    ALUMNI_STUDENT_VOICES_BUCKET_NAME,
+    path,
+    onProgress
+  )
+}
+
+/**
  * Delete a camp image from Supabase Storage
  */
 export async function deleteCampImage(imageUrl: string): Promise<boolean> {
+  return deletePublicStorageImage(imageUrl, CAMPS_BUCKET_NAME)
+}
+
+export async function deleteAlumniStudentVoiceImage(
+  imageUrl: string
+): Promise<boolean> {
+  return deletePublicStorageImage(imageUrl, ALUMNI_STUDENT_VOICES_BUCKET_NAME)
+}
+
+async function deletePublicStorageImage(
+  imageUrl: string,
+  bucketName: string
+): Promise<boolean> {
   const supabase = createClient()
 
   try {
     // Extract path from URL
     const url = new URL(imageUrl)
-    const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/camps\/(.+)/)
+    const pathPrefix = `/storage/v1/object/public/${bucketName}/`
+    const pathStart = url.pathname.indexOf(pathPrefix)
     
-    if (!pathMatch) {
+    if (pathStart === -1) {
       console.warn("Could not extract path from URL:", imageUrl)
       return false
     }
 
-    const path = pathMatch[1]
+    const path = decodeURIComponent(
+      url.pathname.slice(pathStart + pathPrefix.length)
+    )
 
-    const { error } = await supabase.storage.from(BUCKET_NAME).remove([path])
+    const { error } = await supabase.storage.from(bucketName).remove([path])
 
     if (error) {
       console.error("Delete error:", error)
@@ -170,7 +220,7 @@ export async function listCampImages(campId: number): Promise<string[]> {
   const folderName = getCampFolderName(campId)
 
   const { data, error } = await supabase.storage
-    .from(BUCKET_NAME)
+    .from(CAMPS_BUCKET_NAME)
     .list(`main/${folderName}`)
 
   if (error) {

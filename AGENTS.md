@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-This repository is the KaiHor Backoffice CMS for managing content used by `khwebpage`, the public KaiHor volunteer camp website. The application is a private Next.js 16 App Router admin panel backed by Supabase Auth, PostgreSQL tables, and Supabase Storage. Its current production-shaped surface is camp content management: listing, searching, creating, editing, viewing, deleting, and attaching media to camp records. Event and publishing support is represented in database types and UI placeholders, but the full event management workflow is not implemented in this checkout.
+This repository is the KaiHor Backoffice CMS for managing content used by `khwebpage`, the public KaiHor volunteer camp website. The application is a private Next.js 16 App Router admin panel backed by Supabase Auth, PostgreSQL tables, and Supabase Storage. Its current production-shaped surface is camp content management and homepage alumni/student voice management: listing, searching, creating, editing, deleting, publishing, and attaching media to records. Event and publishing support is represented in database types and UI placeholders, but the full event management workflow is not implemented in this checkout.
 
 The system should be understood as a CMS with these layers:
 
 - Admin UI: Next.js routes under `src/app`.
 - Auth/session layer: Supabase Auth through `@supabase/ssr`.
 - Content store: Supabase tables typed in `src/types/database.ts`.
-- Media store: Supabase Storage bucket named `camps`.
+- Media store: Supabase Storage buckets named `camps` and `alumni-student-voices`.
 - Delivery surface: Supabase table/storage data consumed by `khwebpage`; this repo also deep-links to the public site through `NEXT_PUBLIC_WEBSITE_URL`.
 
 ## Key Files and Entry Points
@@ -21,12 +21,14 @@ The system should be understood as a CMS with these layers:
 - `src/app/(dashboard)/layout.tsx`: protected dashboard layout and sidebar.
 - `src/app/(dashboard)/dashboard/page.tsx`: CMS stats and setup checklist.
 - `src/app/(dashboard)/camps`: camp list, detail, create, edit, and delete flows.
+- `src/app/(dashboard)/alumni-student-voices`: CRUD and publish controls for the 3-person homepage Camp Voices content.
 - `src/app/(dashboard)/events/page.tsx`: placeholder for future event publishing features.
 - `src/components/image-upload.tsx`: upload UI and image-list editing.
 - `src/services/storage.ts`: Supabase Storage upload/delete/list helpers.
 - `src/lib/supabase/client.ts`: browser Supabase client.
 - `src/lib/supabase/server.ts`: server Supabase client.
-- `src/types/database.ts`: current inferred database contract for `camps`, `profiles`, and `events`.
+- `src/types/database.ts`: current inferred database contract for `camps`, `profiles`, `events`, and `alumni_student_voices`.
+- `docs/alumni-student-voices.md`: SQL contract for the voices table, RLS policies, and Storage bucket.
 - `docs/image-migration.md`: migration notes for moving `KHWebpage/public/camps` images into Supabase Storage.
 
 ## Logical Agents
@@ -72,16 +74,19 @@ Responsibilities:
 - Create and update camp records in `src/app/(dashboard)/camps/camp-form.tsx`.
 - View individual camp metadata and image galleries in `src/app/(dashboard)/camps/[id]/page.tsx`.
 - Delete camp records in `src/app/(dashboard)/camps/[id]/delete-button.tsx`.
+- Manage homepage alumni/student voice rows in `src/app/(dashboard)/alumni-student-voices`.
+- Use `is_published` and `display_order` to control public visibility and order; only 3 published voices should be visible on `khwebpage`.
 
 Inputs:
 
 - `camp_id`, `name`, `location`, `province`, `director`, `date`, and `img_src`.
+- Voice `name`, `role`, `relation`, `camp_year`, `quote`, portrait URL, display order, and publish state.
 - Supabase row IDs from route params.
 - Search text in the camp table UI.
 
 Outputs:
 
-- Inserted, updated, or deleted rows in `public.camps`.
+- Inserted, updated, or deleted rows in `public.camps` and `public.alumni_student_voices`.
 - Toasts, inline errors, route refreshes, and dashboard stats.
 - Public-site links of the form `${NEXT_PUBLIC_WEBSITE_URL}/camp/${camp.camp_id}`.
 
@@ -100,6 +105,7 @@ Responsibilities:
 - Accept drag-and-drop or file-input uploads in `ImageUpload`.
 - Compress images larger than 5 MB with `browser-image-compression`.
 - Store files in Supabase Storage bucket `camps`, under `main/{campIdFolder}/{fileName}`.
+- Store alumni/student voice portraits in Supabase Storage bucket `alumni-student-voices`, under `voices/{fileName}`.
 - Convert decimal camp IDs to folder-safe names (`53.5` -> `53-5`).
 - Return public URLs and update `camps.img_src`.
 - Delete individual storage objects when an image is removed from a camp.
@@ -293,13 +299,13 @@ NEXT_PUBLIC_WEBSITE_URL=https://your-public-khwebpage-url
 Access setup:
 
 1. Create or use a Supabase project.
-2. Ensure the `camps`, `events`, and `profiles` tables match `src/types/database.ts`.
-3. Ensure Supabase Storage has a public `camps` bucket if public image URLs are expected.
+2. Ensure the `camps`, `events`, `profiles`, and `alumni_student_voices` tables match `src/types/database.ts`.
+3. Ensure Supabase Storage has public `camps` and `alumni-student-voices` buckets if public image URLs are expected.
 4. Create a Supabase Auth user.
 5. Set that user's `profiles.role` to `admin` for full CMS access.
 6. Start the app and sign in at `/login`.
 
-Note: `README.md` references `supabase/schema.sql`, `supabase/seed.sql`, and `supabase/storage.sql`, but the `supabase/` directory is not present in this checkout. Treat `src/types/database.ts`, the live Supabase dashboard, and `docs/image-migration.md` as the current local evidence unless migrations are restored.
+Note: `README.md` references `supabase/schema.sql`, `supabase/seed.sql`, and `supabase/storage.sql`, but the `supabase/` directory is not present in this checkout. Treat `src/types/database.ts`, the live Supabase dashboard, `docs/image-migration.md`, and `docs/alumni-student-voices.md` as the current local evidence unless migrations are restored.
 
 ## Codebase Navigation Rules for Agents
 

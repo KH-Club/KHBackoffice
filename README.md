@@ -1,6 +1,6 @@
 # KaiHor Backoffice
 
-Admin panel for managing KaiHor camps and events, built with Next.js and Supabase.
+Admin panel for managing KaiHor camps, events, and alumni/student voices, built with Next.js and Supabase.
 
 ## Tech Stack
 
@@ -88,6 +88,7 @@ kaihor-backoffice/
 ├── src/
 │   ├── app/
 │   │   ├── (dashboard)/      # Protected dashboard routes
+│   │   │   ├── alumni-student-voices/ # Homepage voice management
 │   │   │   ├── camps/        # Camps management
 │   │   │   ├── dashboard/    # Main dashboard
 │   │   │   ├── events/       # Events management
@@ -110,6 +111,7 @@ kaihor-backoffice/
 │   ├── seed.sql              # Camp data import
 │   └── storage.sql           # Storage bucket setup
 ├── docs/
+│   ├── alumni-student-voices.md # Voice schema and storage SQL
 │   └── image-migration.md    # Image migration guide
 └── .env.local.example        # Environment template
 ```
@@ -120,6 +122,7 @@ kaihor-backoffice/
 - [x] Admin authentication (email/password)
 - [x] Dashboard with stats
 - [x] Camps list view with search
+- [x] Alumni/student voice CRUD and publish control
 - [x] Responsive sidebar navigation
 - [x] Role-based access (admin/editor/viewer)
 
@@ -129,6 +132,10 @@ kaihor-backoffice/
 - [ ] Events management
 - [ ] Data import from KHWebpage JSON
 - [ ] Profile management
+
+## Alumni/Student Voices
+
+The `/alumni-student-voices` route manages the 3-person homepage Camp Voices section in KHWebpage. Run the SQL in `docs/alumni-student-voices.md` to create the `alumni_student_voices` table and `alumni-student-voices` Storage bucket. Only rows with `is_published = true` should be readable by the public website; KHWebpage renders the first 3 published rows by display order.
 
 ## User Roles
 
