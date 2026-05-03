@@ -1,6 +1,6 @@
 # KaiHor Backoffice
 
-Admin panel for managing KaiHor camps and events, built with Next.js and Supabase.
+Admin panel for managing KaiHor camps, events, and alumni/student voices, built with Next.js and Supabase.
 
 ## Tech Stack
 
@@ -88,6 +88,7 @@ kaihor-backoffice/
 ├── src/
 │   ├── app/
 │   │   ├── (dashboard)/      # Protected dashboard routes
+│   │   │   ├── alumni-student-voices/ # Homepage voice management
 │   │   │   ├── camps/        # Camps management
 │   │   │   ├── dashboard/    # Main dashboard
 │   │   │   ├── events/       # Events management
@@ -110,6 +111,7 @@ kaihor-backoffice/
 │   ├── seed.sql              # Camp data import
 │   └── storage.sql           # Storage bucket setup
 ├── docs/
+│   ├── alumni-student-voices.md # Voice schema and storage SQL
 │   └── image-migration.md    # Image migration guide
 └── .env.local.example        # Environment template
 ```
@@ -120,6 +122,7 @@ kaihor-backoffice/
 - [x] Admin authentication (email/password)
 - [x] Dashboard with stats
 - [x] Camps list view with search
+- [x] Alumni/student voice CRUD and publish control
 - [x] Responsive sidebar navigation
 - [x] Role-based access (admin/editor/viewer)
 
@@ -129,6 +132,10 @@ kaihor-backoffice/
 - [ ] Events management
 - [ ] Data import from KHWebpage JSON
 - [ ] Profile management
+
+## Alumni/Student Voices
+
+The `/alumni-student-voices` route manages the 3-person homepage Camp Voices section in KHWebpage. Run the SQL in `docs/alumni-student-voices.md` to create the `alumni_student_voices` table and `alumni-student-voices` Storage bucket. Only rows with `is_published = true` should be readable by the public website; KHWebpage renders the first 3 published rows by display order.
 
 ## User Roles
 
@@ -145,6 +152,7 @@ yarn dev        # Start development server
 yarn build      # Build for production
 yarn start      # Start production server
 yarn lint       # Run ESLint
+yarn typecheck  # Run TypeScript without emitting files
 ```
 
 ## Related Projects
@@ -153,12 +161,21 @@ yarn lint       # Run ESLint
 
 ## Deployment
 
-This project can be deployed to Vercel:
+No automatic deployment is configured in CI. Deploy manually only when the
+project owner explicitly approves the target platform and any possible
+deployment/build usage.
 
-1. Push to GitHub
-2. Import project in Vercel
-3. Add environment variables
-4. Deploy
+## CI
+
+GitHub Actions runs on pushes and pull requests to `dev` and `main`. Feature
+branches should merge into `dev`; `dev` should promote into `main` only when
+the integrated feature set is ready for production:
+
+1. ESLint with zero-warning enforcement.
+2. TypeScript type checking.
+3. Next.js production build.
+
+The workflow does not deploy to Vercel or require a Vercel token.
 
 ## License
 

@@ -29,6 +29,7 @@ import {
   Home,
   Tent,
   Calendar,
+  MessageSquareQuote,
   Settings,
   LogOut,
   ChevronUp,
@@ -49,6 +50,11 @@ const menuItems = [
     title: "Events",
     url: "/events",
     icon: Calendar,
+  },
+  {
+    title: "Voices",
+    url: "/alumni-student-voices",
+    icon: MessageSquareQuote,
   },
   {
     title: "Settings",

@@ -114,6 +114,51 @@ export interface Database {
         }
         Relationships: []
       }
+      alumni_student_voices: {
+        Row: {
+          id: number
+          name: string
+          role: string
+          relation: string | null
+          camp_year: string | null
+          quote: string
+          image_url: string | null
+          image_alt: string | null
+          display_order: number
+          is_published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          role: string
+          relation?: string | null
+          camp_year?: string | null
+          quote: string
+          image_url?: string | null
+          image_alt?: string | null
+          display_order?: number
+          is_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          role?: string
+          relation?: string | null
+          camp_year?: string | null
+          quote?: string
+          image_url?: string | null
+          image_alt?: string | null
+          display_order?: number
+          is_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -142,5 +187,12 @@ export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"]
 export type Event = Database["public"]["Tables"]["events"]["Row"]
 export type EventInsert = Database["public"]["Tables"]["events"]["Insert"]
 export type EventUpdate = Database["public"]["Tables"]["events"]["Update"]
+
+export type AlumniStudentVoice =
+  Database["public"]["Tables"]["alumni_student_voices"]["Row"]
+export type AlumniStudentVoiceInsert =
+  Database["public"]["Tables"]["alumni_student_voices"]["Insert"]
+export type AlumniStudentVoiceUpdate =
+  Database["public"]["Tables"]["alumni_student_voices"]["Update"]
 
 export type UserRole = Database["public"]["Enums"]["user_role"]
