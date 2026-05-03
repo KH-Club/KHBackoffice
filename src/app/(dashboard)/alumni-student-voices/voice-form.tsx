@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
+import { deleteAlumniStudentVoiceImage } from "@/services/storage"
 import type { AlumniStudentVoice } from "@/types/database"
 import { VoiceImageUpload } from "./voice-image-upload"
 
@@ -26,6 +27,7 @@ export function VoiceForm({ mode, voice }: VoiceFormProps) {
   const supabase = createClient()
 
   const [loading, setLoading] = useState(false)
+  const [isImageUploading, setIsImageUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: voice?.name ?? "",
@@ -80,6 +82,11 @@ export function VoiceForm({ mode, voice }: VoiceFormProps) {
     event.preventDefault()
     setError(null)
 
+    if (isImageUploading) {
+      setError("Wait until the portrait upload finishes before saving.")
+      return
+    }
+
     const validationError = validate()
     if (validationError) {
       setError(validationError)
@@ -122,6 +129,17 @@ export function VoiceForm({ mode, voice }: VoiceFormProps) {
           .eq("id", voice!.id)
 
         if (error) throw error
+
+        if (voice?.image_url && voice.image_url !== payload.image_url) {
+          const deleted = await deleteAlumniStudentVoiceImage(voice.image_url)
+
+          if (!deleted) {
+            toast.warning(
+              "Voice saved, but the previous portrait could not be removed from storage."
+            )
+          }
+        }
+
         toast.success("Voice updated successfully")
       }
 
@@ -133,6 +151,15 @@ export function VoiceForm({ mode, voice }: VoiceFormProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const isSubmitDisabled = loading || isImageUploading
+  let submitLabel = "Save Changes"
+
+  if (isImageUploading) {
+    submitLabel = "Uploading Portrait"
+  } else if (mode === "create") {
+    submitLabel = "Create Voice"
   }
 
   return (
@@ -148,19 +175,19 @@ export function VoiceForm({ mode, voice }: VoiceFormProps) {
             <h1 className="text-2xl font-bold text-gray-900">
               {mode === "create" ? "Add Alumni/Student Voice" : "Edit Voice"}
             </h1>
-          <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500">
               Publish up to 3 short stories that appear in the public Camp
               Voices section.
             </p>
           </div>
         </div>
-        <Button type="submit" disabled={loading}>
-          {loading ? (
+        <Button type="submit" disabled={isSubmitDisabled}>
+          {isSubmitDisabled ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}
-          {mode === "create" ? "Create Voice" : "Save Changes"}
+          {submitLabel}
         </Button>
       </div>
 
@@ -282,6 +309,7 @@ export function VoiceForm({ mode, voice }: VoiceFormProps) {
               <VoiceImageUpload
                 imageUrl={formData.image_url}
                 onImageChange={(url) => handleChange("image_url", url)}
+                onUploadStateChange={setIsImageUploading}
               />
               <div className="space-y-2">
                 <Label htmlFor="image_alt">Image Alt Text</Label>

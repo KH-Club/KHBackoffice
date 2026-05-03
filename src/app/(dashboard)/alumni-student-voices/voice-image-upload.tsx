@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 interface VoiceImageUploadProps {
   imageUrl: string
   onImageChange: (url: string) => void
+  onUploadStateChange?: (isUploading: boolean) => void
 }
 
 type UploadStage = "idle" | "compressing" | "uploading" | "done" | "error"
@@ -20,10 +21,14 @@ type UploadStage = "idle" | "compressing" | "uploading" | "done" | "error"
 export function VoiceImageUpload({
   imageUrl,
   onImageChange,
+  onUploadStateChange,
 }: VoiceImageUploadProps) {
   const [stage, setStage] = useState<UploadStage>("idle")
   const [progress, setProgress] = useState(0)
   const [fileSize, setFileSize] = useState<string | null>(null)
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<Set<string>>(
+    () => new Set()
+  )
 
   const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -34,30 +39,52 @@ export function VoiceImageUpload({
     setFileSize(formatFileSize(file.size))
     setStage("uploading")
     setProgress(0)
+    onUploadStateChange?.(true)
 
-    const result = await uploadAlumniStudentVoiceImage(
-      file,
-      undefined,
-      (nextStage, nextProgress) => {
-        setStage(nextStage as UploadStage)
-        setProgress(nextProgress)
+    try {
+      const result = await uploadAlumniStudentVoiceImage(
+        file,
+        undefined,
+        (nextStage, nextProgress) => {
+          setStage(nextStage as UploadStage)
+          setProgress(nextProgress)
+        }
+      )
+
+      if ("error" in result) {
+        setStage("error")
+        toast.error(result.error)
+        return
       }
-    )
 
-    if ("error" in result) {
-      setStage("error")
-      toast.error(result.error)
-      return
+      setStage("done")
+      setUploadedImageUrls((prev) => {
+        const next = new Set(prev)
+        next.add(result.url)
+        return next
+      })
+      onImageChange(result.url)
+      toast.success("Voice image uploaded")
+    } finally {
+      onUploadStateChange?.(false)
     }
-
-    setStage("done")
-    onImageChange(result.url)
-    toast.success("Voice image uploaded")
   }
 
   const handleRemove = async () => {
-    if (imageUrl) {
-      await deleteAlumniStudentVoiceImage(imageUrl)
+    const shouldDeleteImmediately = uploadedImageUrls.has(imageUrl)
+
+    if (imageUrl && shouldDeleteImmediately) {
+      const deleted = await deleteAlumniStudentVoiceImage(imageUrl)
+
+      if (!deleted) {
+        toast.error("Image removed from the form, but storage cleanup failed.")
+      }
+
+      setUploadedImageUrls((prev) => {
+        const next = new Set(prev)
+        next.delete(imageUrl)
+        return next
+      })
     }
 
     onImageChange("")
@@ -81,7 +108,7 @@ export function VoiceImageUpload({
             variant="destructive"
             size="icon"
             onClick={handleRemove}
-            className="absolute right-2 top-2 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
+            className="absolute right-2 top-2 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Remove image</span>
