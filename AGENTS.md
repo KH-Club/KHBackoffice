@@ -327,6 +327,7 @@ Available checks:
 
 ```bash
 yarn lint
+yarn typecheck
 yarn build
 ```
 
@@ -338,6 +339,11 @@ No test runner is configured in this repo at the time of inspection. For CMS cha
 - Camp create, edit, detail, and delete.
 - Image upload, preview, removal, and public URL rendering.
 - Public-site link generation through `NEXT_PUBLIC_WEBSITE_URL`.
+
+CI runs the same lint, typecheck, and build gates on pushes and pull requests
+to `dev` and `main`. Feature branches should merge into `dev`; `dev` then
+promotes into `main` when the integrated feature set is production-ready. CI
+does not deploy to Vercel or require a Vercel token.
 
 ## Assumptions and Known Gaps
 

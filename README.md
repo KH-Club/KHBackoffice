@@ -152,6 +152,7 @@ yarn dev        # Start development server
 yarn build      # Build for production
 yarn start      # Start production server
 yarn lint       # Run ESLint
+yarn typecheck  # Run TypeScript without emitting files
 ```
 
 ## Related Projects
@@ -160,12 +161,21 @@ yarn lint       # Run ESLint
 
 ## Deployment
 
-This project can be deployed to Vercel:
+No automatic deployment is configured in CI. Deploy manually only when the
+project owner explicitly approves the target platform and any possible
+deployment/build usage.
 
-1. Push to GitHub
-2. Import project in Vercel
-3. Add environment variables
-4. Deploy
+## CI
+
+GitHub Actions runs on pushes and pull requests to `dev` and `main`. Feature
+branches should merge into `dev`; `dev` should promote into `main` only when
+the integrated feature set is ready for production:
+
+1. ESLint with zero-warning enforcement.
+2. TypeScript type checking.
+3. Next.js production build.
+
+The workflow does not deploy to Vercel or require a Vercel token.
 
 ## License
 

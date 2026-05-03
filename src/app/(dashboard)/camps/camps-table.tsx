@@ -26,7 +26,7 @@ import {
   Trash2,
   Eye,
   Search,
-  Image,
+  Image as ImageIcon,
   MapPin,
   User,
 } from "lucide-react"
@@ -51,7 +51,7 @@ export function CampsTable({ camps }: CampsTableProps) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-12 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-          <Image className="h-8 w-8 text-gray-400" />
+          <ImageIcon className="h-8 w-8 text-gray-400" />
         </div>
         <p className="mt-4 text-lg font-medium text-gray-900">
           No camps found
@@ -110,7 +110,7 @@ export function CampsTable({ camps }: CampsTableProps) {
               <TableHead className="font-semibold text-gray-700">Date</TableHead>
               <TableHead className="w-24 text-center font-semibold text-gray-700">
                 <div className="flex items-center justify-center gap-1">
-                  <Image className="h-4 w-4" />
+                  <ImageIcon className="h-4 w-4" />
                   Images
                 </div>
               </TableHead>
