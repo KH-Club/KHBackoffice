@@ -47,7 +47,7 @@ const menuItems = [
     icon: Tent,
   },
   {
-    title: "Events",
+    title: "News",
     url: "/events",
     icon: Calendar,
   },

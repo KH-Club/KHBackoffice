@@ -84,8 +84,14 @@ export interface Database {
           title: string
           description: string | null
           event_date: string
+          start_date: string | null
+          end_date: string | null
           location: string | null
           img_src: string | null
+          type: EventType | null
+          status: EventStatus | null
+          action_label: string | null
+          action_url: string | null
           is_published: boolean
           created_at: string
           updated_at: string
@@ -95,8 +101,14 @@ export interface Database {
           title: string
           description?: string | null
           event_date: string
+          start_date?: string | null
+          end_date?: string | null
           location?: string | null
           img_src?: string | null
+          type?: EventType | null
+          status?: EventStatus | null
+          action_label?: string | null
+          action_url?: string | null
           is_published?: boolean
           created_at?: string
           updated_at?: string
@@ -106,8 +118,14 @@ export interface Database {
           title?: string
           description?: string | null
           event_date?: string
+          start_date?: string | null
+          end_date?: string | null
           location?: string | null
           img_src?: string | null
+          type?: EventType | null
+          status?: EventStatus | null
+          action_label?: string | null
+          action_url?: string | null
           is_published?: boolean
           created_at?: string
           updated_at?: string
@@ -176,6 +194,9 @@ export interface Database {
 }
 
 // Convenience types
+export type EventType = "event" | "activity" | "announcement"
+export type EventStatus = "upcoming" | "completed" | "announcement"
+
 export type Camp = Database["public"]["Tables"]["camps"]["Row"]
 export type CampInsert = Database["public"]["Tables"]["camps"]["Insert"]
 export type CampUpdate = Database["public"]["Tables"]["camps"]["Update"]
