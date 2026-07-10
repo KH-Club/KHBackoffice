@@ -91,7 +91,7 @@ kaihor-backoffice/
 │   │   │   ├── alumni-student-voices/ # Homepage voice management
 │   │   │   ├── camps/        # Camps management
 │   │   │   ├── dashboard/    # Main dashboard
-│   │   │   ├── events/       # Events management
+│   │   │   ├── events/       # News & Activities management
 │   │   │   ├── settings/     # User settings
 │   │   │   └── layout.tsx    # Dashboard layout with sidebar
 │   │   ├── auth/             # Auth callback
@@ -123,19 +123,29 @@ kaihor-backoffice/
 - [x] Dashboard with stats
 - [x] Camps list view with search
 - [x] Alumni/student voice CRUD and publish control
+- [x] News & Activities CRUD, search, category/status labels, and publish control
 - [x] Responsive sidebar navigation
 - [x] Role-based access (admin/editor/viewer)
 
 ### Planned
 - [ ] Add/Edit/Delete camps
 - [ ] Image upload to Supabase Storage
-- [ ] Events management
 - [ ] Data import from KHWebpage JSON
 - [ ] Profile management
 
 ## Alumni/Student Voices
 
 The `/alumni-student-voices` route manages the 3-person homepage Camp Voices section in KHWebpage. Run the SQL in `docs/alumni-student-voices.md` to create the `alumni_student_voices` table and `alumni-student-voices` Storage bucket. Only rows with `is_published = true` should be readable by the public website; KHWebpage renders the first 3 published rows by display order.
+
+## News & Activities
+
+The `/events` route manages the public KHWebpage `/news-activities` and
+`/event/:id` pages. Run the SQL in `docs/news-activities.md` to create or update
+the `events` table, RLS policies, and `news-activities` Storage bucket. Images
+are uploaded from the CMS and saved into `events.img_src` as public URLs.
+`event_date` is the main event date, while `start_date` and `end_date` support
+registration windows, deadlines, and countdown labels. Only rows with
+`is_published = true` should be readable by the public website.
 
 ## User Roles
 

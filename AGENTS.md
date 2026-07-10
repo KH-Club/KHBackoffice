@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-This repository is the KaiHor Backoffice CMS for managing content used by `khwebpage`, the public KaiHor volunteer camp website. The application is a private Next.js 16 App Router admin panel backed by Supabase Auth, PostgreSQL tables, and Supabase Storage. Its current production-shaped surface is camp content management and homepage alumni/student voice management: listing, searching, creating, editing, deleting, publishing, and attaching media to records. Event and publishing support is represented in database types and UI placeholders, but the full event management workflow is not implemented in this checkout.
+This repository is the KaiHor Backoffice CMS for managing content used by `khwebpage`, the public KaiHor volunteer camp website. The application is a private Next.js 16 App Router admin panel backed by Supabase Auth, PostgreSQL tables, and Supabase Storage. Its current production-shaped surface is camp content management, homepage alumni/student voice management, and News & Activities management: listing, searching, creating, editing, deleting, publishing, registration deadline metadata, action buttons, and attaching public image URLs to records.
 
 The system should be understood as a CMS with these layers:
 
 - Admin UI: Next.js routes under `src/app`.
 - Auth/session layer: Supabase Auth through `@supabase/ssr`.
 - Content store: Supabase tables typed in `src/types/database.ts`.
-- Media store: Supabase Storage buckets named `camps` and `alumni-student-voices`.
+- Media store: Supabase Storage buckets named `camps`, `alumni-student-voices`, and `news-activities`.
 - Delivery surface: Supabase table/storage data consumed by `khwebpage`; this repo also deep-links to the public site through `NEXT_PUBLIC_WEBSITE_URL`.
 
 ## Key Files and Entry Points
@@ -22,13 +22,14 @@ The system should be understood as a CMS with these layers:
 - `src/app/(dashboard)/dashboard/page.tsx`: CMS stats and setup checklist.
 - `src/app/(dashboard)/camps`: camp list, detail, create, edit, and delete flows.
 - `src/app/(dashboard)/alumni-student-voices`: CRUD and publish controls for the 3-person homepage Camp Voices content.
-- `src/app/(dashboard)/events/page.tsx`: placeholder for future event publishing features.
+- `src/app/(dashboard)/events`: News & Activities list, create, edit, delete, image upload, category/status, registration deadline, action button, and publish controls for the public `/news-activities` and `/event/:id` pages.
 - `src/components/image-upload.tsx`: upload UI and image-list editing.
 - `src/services/storage.ts`: Supabase Storage upload/delete/list helpers.
 - `src/lib/supabase/client.ts`: browser Supabase client.
 - `src/lib/supabase/server.ts`: server Supabase client.
 - `src/types/database.ts`: current inferred database contract for `camps`, `profiles`, `events`, and `alumni_student_voices`.
 - `docs/alumni-student-voices.md`: SQL contract for the voices table, RLS policies, and Storage bucket.
+- `docs/news-activities.md`: SQL contract for the events table fields, RLS policies, and public delivery rules.
 - `docs/image-migration.md`: migration notes for moving `KHWebpage/public/camps` images into Supabase Storage.
 
 ## Logical Agents
@@ -106,6 +107,7 @@ Responsibilities:
 - Compress images larger than 5 MB with `browser-image-compression`.
 - Store files in Supabase Storage bucket `camps`, under `main/{campIdFolder}/{fileName}`.
 - Store alumni/student voice portraits in Supabase Storage bucket `alumni-student-voices`, under `voices/{fileName}`.
+- Store News & Activities images in Supabase Storage bucket `news-activities`, under `events/{fileName}`.
 - Convert decimal camp IDs to folder-safe names (`53.5` -> `53-5`).
 - Return public URLs and update `camps.img_src`.
 - Delete individual storage objects when an image is removed from a camp.
@@ -137,20 +139,22 @@ Purpose: Control whether time-sensitive content is visible on the public site.
 
 Current state:
 
-- The `events` table type includes `is_published`, `event_date`, `location`, `img_src`, and `description`.
-- `/events` is a placeholder page that says event creation, image upload, and publish/unpublish are under development.
-- No review queue, scheduled publish date, draft status, or approval table is visible in the current code.
+- The `events` table type includes `title`, `description`, `event_date`, `start_date`, `end_date`, `location`, `img_src`, `type`, `status`, `action_label`, `action_url`, and `is_published`.
+- `/events` lists News & Activities rows with search, category/status labels, publish state, edit links, and deletion confirmation.
+- `/events/new` and `/events/[id]/edit` create and update public news/activity rows.
+- No review queue, scheduled publish date, or approval table is visible in the current code.
 
-Expected responsibilities when implemented:
+Responsibilities:
 
 - Create and edit event records.
+- Delete event records after confirmation.
 - Toggle `is_published`.
-- Optionally schedule publication if a scheduling field is added.
+- Classify rows by category and public status.
 - Ensure delivery queries expose only published records.
 
 Inputs:
 
-- Event title, description, date, location, image, and publish state.
+- Event title, description, event date, registration start/end dates, location, image URL, category, status, action label/URL, and publish state.
 
 Outputs:
 
@@ -160,7 +164,7 @@ Outputs:
 Interactions:
 
 - Uses Auth for editor identity.
-- Uses Media for event images if image upload is added.
+- Uses the Media Agent to upload images into the `news-activities` bucket and stores the resulting public URL in `events.img_src`.
 - Coordinates with the API/Delivery Agent so unpublished content is not exposed.
 
 ### API and Delivery Agent
@@ -255,15 +259,11 @@ Important: This flow deletes the database row only. It does not bulk-delete all 
 
 ### Event Publishing
 
-Current implementation is incomplete. The intended future flow is:
-
-1. Editor creates an event draft.
-2. Editor attaches media.
-3. Reviewer or admin toggles `is_published`.
+1. Editor creates a news/activity draft from `/events/new`.
+2. Editor sets category, status, date, location, description, and optional uploaded image.
+3. Editor toggles `is_published`.
 4. Delivery queries expose only published events.
-5. Public website renders published events.
-
-Do not document this as shipped functionality until the `/events` route is implemented.
+5. Public website renders published events at `/news-activities`.
 
 ### Content Delivery to KHWebpage
 
@@ -299,13 +299,13 @@ NEXT_PUBLIC_WEBSITE_URL=https://your-public-khwebpage-url
 Access setup:
 
 1. Create or use a Supabase project.
-2. Ensure the `camps`, `events`, `profiles`, and `alumni_student_voices` tables match `src/types/database.ts`.
-3. Ensure Supabase Storage has public `camps` and `alumni-student-voices` buckets if public image URLs are expected.
+2. Ensure the `camps`, `events`, `profiles`, and `alumni_student_voices` tables match `src/types/database.ts`; use `docs/news-activities.md` for the `events` contract.
+3. Ensure Supabase Storage has public `camps`, `alumni-student-voices`, and `news-activities` buckets if public image URLs are expected.
 4. Create a Supabase Auth user.
 5. Set that user's `profiles.role` to `admin` for full CMS access.
 6. Start the app and sign in at `/login`.
 
-Note: `README.md` references `supabase/schema.sql`, `supabase/seed.sql`, and `supabase/storage.sql`, but the `supabase/` directory is not present in this checkout. Treat `src/types/database.ts`, the live Supabase dashboard, `docs/image-migration.md`, and `docs/alumni-student-voices.md` as the current local evidence unless migrations are restored.
+Note: `README.md` references `supabase/schema.sql`, `supabase/seed.sql`, and `supabase/storage.sql`, but the `supabase/` directory is not present in this checkout. Treat `src/types/database.ts`, the live Supabase dashboard, `docs/image-migration.md`, `docs/alumni-student-voices.md`, and `docs/news-activities.md` as the current local evidence unless migrations are restored.
 
 ## Codebase Navigation Rules for Agents
 
@@ -336,6 +336,7 @@ No test runner is configured in this repo at the time of inspection. For CMS cha
 - Login and logout.
 - `/dashboard` stats.
 - `/camps` list and search.
+- `/events` list, search, create, edit, publish toggle, and delete.
 - Camp create, edit, detail, and delete.
 - Image upload, preview, removal, and public URL rendering.
 - Public-site link generation through `NEXT_PUBLIC_WEBSITE_URL`.
@@ -349,7 +350,7 @@ does not deploy to Vercel or require a Vercel token.
 
 - This repo is treated as the CMS for `khwebpage`, while the public frontend lives in a sibling project.
 - Supabase is both the database and delivery API unless a separate API is added later.
-- Publishing workflows are planned but not implemented beyond the `events.is_published` type and placeholder UI.
+- News & Activities publishing is implemented through `events.is_published`; review/approval workflows are not present.
 - Review/approval workflows are not present.
 - Role-based access is modeled but not fully visible in route-level code.
 - Camp deletion does not clean up all attached media objects.

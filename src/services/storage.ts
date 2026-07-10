@@ -3,6 +3,7 @@ import imageCompression from "browser-image-compression"
 
 const CAMPS_BUCKET_NAME = "camps"
 const ALUMNI_STUDENT_VOICES_BUCKET_NAME = "alumni-student-voices"
+const NEWS_ACTIVITIES_BUCKET_NAME = "news-activities"
 const MAX_FILE_SIZE_MB = 5 // Supabase bucket limit
 
 type UploadResult = { url: string; path: string } | { error: string }
@@ -24,6 +25,10 @@ export function getCampImageUrl(path: string): string {
 
 export function getAlumniStudentVoiceImageUrl(path: string): string {
   return getPublicStorageUrl(ALUMNI_STUDENT_VOICES_BUCKET_NAME, path)
+}
+
+export function getNewsActivityImageUrl(path: string): string {
+  return getPublicStorageUrl(NEWS_ACTIVITIES_BUCKET_NAME, path)
 }
 
 function getPublicStorageUrl(bucketName: string, path: string): string {
@@ -164,6 +169,26 @@ export async function uploadAlumniStudentVoiceImage(
   )
 }
 
+export async function uploadNewsActivityImage(
+  file: File,
+  fileName?: string,
+  onProgress?: (stage: string, progress: number) => void
+): Promise<UploadResult> {
+  onProgress?.("uploading", 0)
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+  const uniqueSuffix = Math.random().toString(36).slice(2)
+  const safeFileName = fileName || `${Date.now()}-${uniqueSuffix}.${ext}`
+  const path = `events/${safeFileName}`
+
+  return uploadImageToBucket(
+    file,
+    NEWS_ACTIVITIES_BUCKET_NAME,
+    path,
+    onProgress
+  )
+}
+
 /**
  * Delete a camp image from Supabase Storage
  */
@@ -175,6 +200,12 @@ export async function deleteAlumniStudentVoiceImage(
   imageUrl: string
 ): Promise<boolean> {
   return deletePublicStorageImage(imageUrl, ALUMNI_STUDENT_VOICES_BUCKET_NAME)
+}
+
+export async function deleteNewsActivityImage(
+  imageUrl: string
+): Promise<boolean> {
+  return deletePublicStorageImage(imageUrl, NEWS_ACTIVITIES_BUCKET_NAME)
 }
 
 async function deletePublicStorageImage(
