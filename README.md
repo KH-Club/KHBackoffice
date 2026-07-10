@@ -124,6 +124,7 @@ kaihor-backoffice/
 - [x] Camps list view with search
 - [x] Alumni/student voice CRUD and publish control
 - [x] News & Activities CRUD, search, category/status labels, and publish control
+- [x] Public website feature flags for News & Activities and Camp Voices
 - [x] Responsive sidebar navigation
 - [x] Role-based access (admin/editor/viewer)
 
@@ -146,6 +147,13 @@ are uploaded from the CMS and saved into `events.img_src` as public URLs.
 `event_date` is the main event date, while `start_date` and `end_date` support
 registration windows, deadlines, and countdown labels. Only rows with
 `is_published = true` should be readable by the public website.
+
+## Website feature flags
+
+The `/settings` route can show or hide News & Activities and Camp Voices on
+KHWebpage without deleting content. Run the SQL in `docs/feature-flags.md` once
+to create the shared table, seed the default flags, and install its RLS
+policies. Flags default to visible if the public website cannot reach Supabase.
 
 ## User Roles
 

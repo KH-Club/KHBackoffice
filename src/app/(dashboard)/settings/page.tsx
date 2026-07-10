@@ -1,15 +1,39 @@
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
-import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Settings } from "lucide-react"
+import { createClient } from "@/lib/supabase/server";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  createDefaultFeatureFlags,
+  isFeatureFlagKey,
+} from "@/lib/feature-flags";
+import { FeatureFlagSettings } from "./feature-flag-settings";
 
 export default async function SettingsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const [
+    {
+      data: { user },
+    },
+    { data: featureFlagRows, error: featureFlagError },
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from("feature_flags").select("key, enabled"),
+  ]);
+
+  const featureFlags = createDefaultFeatureFlags();
+
+  for (const row of featureFlagRows ?? []) {
+    if (isFeatureFlagKey(row.key)) {
+      featureFlags[row.key] = row.enabled;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -20,7 +44,15 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      {user ? (
+        <FeatureFlagSettings
+          initialFlags={featureFlags}
+          userId={user.id}
+          isConfigured={!featureFlagError}
+        />
+      ) : null}
+
+      <div className="grid gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Account Information</CardTitle>
@@ -32,7 +64,9 @@ export default async function SettingsPage() {
               <p>{user?.email}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">User ID</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                User ID
+              </p>
               <p className="font-mono text-sm">{user?.id}</p>
             </div>
             <div>
@@ -47,27 +81,7 @@ export default async function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Application Settings
-            </CardTitle>
-            <CardDescription>Coming soon</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Additional settings will be available here, including:
-            </p>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-muted-foreground">
-              <li>Profile management</li>
-              <li>Password change</li>
-              <li>Notification preferences</li>
-            </ul>
-          </CardContent>
-        </Card>
       </div>
     </div>
-  )
+  );
 }
