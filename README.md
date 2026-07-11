@@ -195,6 +195,12 @@ the integrated feature set is ready for production:
 
 The workflow does not deploy to Vercel or require a Vercel token.
 
+## Scheduled health check
+
+Production includes a protected daily Vercel Cron probe at `/api/health`. See
+[`docs/health-check.md`](docs/health-check.md) for architecture, environment
+variables, local testing, deployment, security, and monitoring guidance.
+
 ## License
 
 Private - KaiHor Camp
