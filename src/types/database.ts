@@ -114,6 +114,21 @@ export interface Database {
         }
         Relationships: []
       }
+      keepalive: {
+        Row: {
+          id: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -142,5 +157,7 @@ export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"]
 export type Event = Database["public"]["Tables"]["events"]["Row"]
 export type EventInsert = Database["public"]["Tables"]["events"]["Insert"]
 export type EventUpdate = Database["public"]["Tables"]["events"]["Update"]
+
+export type Keepalive = Database["public"]["Tables"]["keepalive"]["Row"]
 
 export type UserRole = Database["public"]["Enums"]["user_role"]
