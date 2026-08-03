@@ -35,7 +35,7 @@ yarn install
 
 ```bash
 # Copy the example env file
-cp .env.local.example .env.local
+cp .env.example .env.local
 
 # Edit .env.local with your Supabase credentials
 ```
@@ -43,6 +43,10 @@ cp .env.local.example .env.local
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+
+# Required for the server-side Supabase keep-alive endpoint
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+CRON_SECRET=generate-a-long-random-secret
 ```
 
 ### 4. Run Database Migrations
@@ -159,6 +163,10 @@ This project can be deployed to Vercel:
 2. Import project in Vercel
 3. Add environment variables
 4. Deploy
+
+The deployment also includes a daily Supabase keep-alive request at
+`/api/keepalive`. Run the SQL and follow the manual test instructions in
+[`docs/supabase-keep-alive.md`](docs/supabase-keep-alive.md).
 
 ## License
 
